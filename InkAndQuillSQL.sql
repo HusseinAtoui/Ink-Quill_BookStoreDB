@@ -47,6 +47,15 @@ CREATE TABLE book_author (
     CONSTRAINT fk_ba_author FOREIGN KEY (author_id) REFERENCES author(author_id)
 );
 
+-- rlt: books and genres
+CREATE TABLE book_genre (
+    book_isbn CHAR(13) NOT NULL,
+    genre_id INT NOT NULL,
+    PRIMARY KEY (book_isbn, genre_id),
+    CONSTRAINT fk_bg_book FOREIGN KEY (book_isbn) REFERENCES book(isbn),
+    CONSTRAINT fk_bg_genre FOREIGN KEY (genre_id) REFERENCES genre(g_id)
+);
+
 -- supplier table
 CREATE TABLE supplier (
     supplier_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -145,6 +154,16 @@ INSERT INTO book_author (book_isbn, author_id) VALUES
     ('9780747538493', 3),
     ('9780747551003', 3);
 
+-- Map books to genres
+INSERT INTO book_genre (book_isbn, genre_id) VALUES
+    ('9781405937220', 1),
+    ('9781405937251', 1),
+    ('9780399544917', 2),
+    ('9780399593931', 2),
+    ('9780747532743', 1),
+    ('9780747538493', 1),
+    ('9780747551003', 1);
+    
 -- Insert suppliers
 INSERT INTO supplier (supplier_id, name, email, phone_number, address) VALUES
     (1, 'BookSupplier1', 'contact@booksupplier1.com', '123-456-7890', '101 Supplier St, NY'),
@@ -187,3 +206,10 @@ FROM book b
 JOIN book_author ba ON b.isbn = ba.book_isbn
 JOIN author a ON ba.author_id = a.author_id
 WHERE a.name = 'J.K. Rowling';
+
+-- q2: List all books of a particular genre
+SELECT b.title
+FROM book b
+JOIN book_genre bg ON b.isbn = bg.book_isbn
+JOIN genre g ON bg.genre_id = g.g_id
+WHERE g.g_name = 'Fantasy';
