@@ -187,7 +187,8 @@ INSERT INTO customer (customer_id, name, email, phone_number, address) VALUES
 -- Insert orders
 INSERT INTO orders (order_id, customer_id, order_date, total_amount, status) VALUES
     (1, 1, '2025-04-10', 50.97, 'Shipped'),
-    (2, 2, '2025-04-12', 59.97, 'Pending');
+    (2, 2, '2025-04-12', 59.97, 'Pending'),
+    (3, 1, '2025-05-12', 59.97, 'Pending');
 
 -- Insert order items
 INSERT INTO order_item (order_item_id, order_id, book_isbn, book_quantity, price) VALUES
@@ -213,3 +214,9 @@ FROM book b
 JOIN book_genre bg ON b.isbn = bg.book_isbn
 JOIN genre g ON bg.genre_id = g.g_id
 WHERE g.g_name = 'Fantasy';
+
+-- q3: Retrieve all orders placed by a specific customer
+SELECT o.order_id, o.order_date, o.total_amount, o.status
+FROM orders o
+JOIN customer c ON o.customer_id = c.customer_id
+WHERE c.name = 'John Doe';
