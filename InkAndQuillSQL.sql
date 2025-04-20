@@ -36,7 +36,7 @@ CREATE TABLE book (
     CONSTRAINT fk_book_publisher FOREIGN KEY (publisher_id) REFERENCES publisher(p_id)
 );
 
--- relation between books and authors
+-- Junction table for books↔authors
 CREATE TABLE book_author (
     book_isbn CHAR(13) NOT NULL,
     author_id INT NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE book_author (
     CONSTRAINT fk_ba_author FOREIGN KEY (author_id) REFERENCES author(author_id)
 );
 
--- relation between books and genres
+-- Junction table for books↔genres
 CREATE TABLE book_genre (
     book_isbn CHAR(13) NOT NULL,
     genre_id INT NOT NULL,
@@ -167,10 +167,15 @@ INSERT INTO supplier (name, email, phone_number, address) VALUES
     ('BookSupplier1', 'contact@booksupplier1.com', '123-456-7890', '101 Supplier St, NY'),
     ('BookSupplier2', 'contact@booksupplier2.com', '987-654-3210', '202 Supplier Ave, LA');
 
--- Insert stock records
+-- insert stock records 
 INSERT INTO stock (stock_quantity_available, restock_quantity, last_stock_date, book_isbn, supplier_id) VALUES
     (100, 50, '2025-04-15', '9781405937220', 1),
-    (75, 40, '2025-04-16', '9780399544917', 2);
+    (80,  40, '2025-04-16', '9781405937221', 1),
+    (60,  30, '2025-04-17', '9781405937251', 2),
+    (90,  45, '2025-04-18', '9780399544917', 2),
+    (70,  35, '2025-04-19', '9780399593931', 1),
+    (120, 60, '2025-04-20', '9780747532743', 1),
+    (95,  50, '2025-04-21', '9780747532744', 2);
 
 -- Insert customers
 INSERT INTO customer (name, email, phone_number, address) VALUES
@@ -201,14 +206,16 @@ INSERT INTO payment (order_id, payment_date, amount_paid, payment_method) VALUES
     (3, '2025-04-12', 31.98, 'Credit Card'),
     (4, '2025-05-20', 14.99, 'Credit Card');
 
--- q1: List all books by J.K. Rowling
+--  Queries
+
+-- q1: List all books by a specific author
 SELECT b.title
 FROM book b
 JOIN book_author ba ON b.isbn = ba.book_isbn
 JOIN author a ON ba.author_id = a.author_id
 WHERE a.name = 'J.K. Rowling';
 
--- q2: List all Fantasy books
+-- q2: List all books by specific genre
 SELECT b.title
 FROM book b
 JOIN book_genre bg ON b.isbn = bg.book_isbn
@@ -228,3 +235,87 @@ JOIN book b ON oi.book_isbn = b.isbn
 WHERE b.title = 'One of Us Is Lying'
 GROUP BY b.title
 ORDER BY total_revenue DESC;
+
+-- q5: Find all books published by a certain publisher
+SELECT b.title, b.isbn, b.publication_year, p.p_name
+FROM book b
+JOIN publisher p ON b.publisher_id = p.p_id
+WHERE p.p_name = 'HarperCollins';
+
+-- q6: List all books that are currently out of stock
+SELECT b.title, b.isbn
+FROM book b
+JOIN stock s ON b.isbn = s.book_isbn
+WHERE s.stock_quantity_available = 0;
+
+-- q7: List all inventory stock
+SELECT s.stock_id, b.title, s.stock_quantity_available, s.restock_quantity, s.last_stock_date, sup.name AS supplier_name
+FROM stock s
+JOIN book b ON s.book_isbn = b.isbn
+JOIN supplier sup ON s.supplier_id = sup.supplier_id;
+
+ -- q8: ⁠Check if a specific book has stock available or is out of stock.
+SELECT 
+  b.title,
+  s.stock_quantity_available,
+  CASE 
+    WHEN s.stock_quantity_available > 0 THEN 'In Stock'
+    ELSE 'Out of Stock'
+  END AS stock_status
+FROM book b
+JOIN stock s ON b.isbn = s.book_isbn
+WHERE b.isbn = '9780747532743';
+
+-- q9  ⁠List all suppliers and the books they provide.
+SELECT 
+  sup.name AS supplier_name,
+  b.title AS book_title,
+  s.restock_quantity,
+  s.last_stock_date
+FROM supplier sup
+JOIN stock s ON sup.supplier_id = s.supplier_id
+JOIN book b ON s.book_isbn = b.isbn
+ORDER BY sup.name, b.title;
+
+-- q10  ⁠Find the supplier(s) for a specific book.
+SELECT 
+  b.title,
+  sup.name AS supplier_name,
+  sup.email,
+  sup.phone_number
+FROM stock s
+JOIN supplier sup ON s.supplier_id = sup.supplier_id
+JOIN book b ON s.book_isbn = b.isbn
+WHERE b.isbn = '9780747532743';
+
+-- q11 Retrieve all stock entries provided by a specific supplier
+SELECT 
+  s.stock_id,
+  b.title AS book_title,
+  s.stock_quantity_available,
+  s.restock_quantity,
+  s.last_stock_date
+FROM stock s
+JOIN book b ON s.book_isbn = b.isbn
+JOIN supplier sup ON s.supplier_id = sup.supplier_id
+WHERE sup.name = 'BookSupplier1';
+
+-- q12 Find the most recent restock date for a given book.
+SELECT 
+  b.title,
+  MAX(s.last_stock_date) AS most_recent_restock
+FROM stock s
+JOIN book b ON s.book_isbn = b.isbn
+WHERE b.isbn = '9781405937220'
+GROUP BY b.title;
+
+-- q13 List all books supplied by a specific supplier along with their restock quantities
+SELECT 
+  b.title AS book_title,
+  s.restock_quantity,
+  s.last_stock_date
+FROM stock s
+JOIN book b ON s.book_isbn = b.isbn
+JOIN supplier sup ON s.supplier_id = sup.supplier_id
+WHERE sup.name = 'BookSupplier2'
+ORDER BY s.last_stock_date DESC;
