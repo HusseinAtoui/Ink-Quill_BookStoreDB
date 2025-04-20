@@ -235,26 +235,33 @@ JOIN book b ON oi.book_isbn = b.isbn
 WHERE b.title = 'One of Us Is Lying'
 GROUP BY b.title
 ORDER BY total_revenue DESC;
+ 
+ -- q5: Books with Low Stock (below 50)
+SELECT b.title, s.stock_quantity_available
+FROM stock s
+JOIN book b ON s.book_isbn = b.isbn
+WHERE s.stock_quantity_available < 50;
 
--- q5: Find all books published by a certain publisher
+
+-- q6: Find all books published by a certain publisher
 SELECT b.title, b.isbn, b.publication_year, p.p_name
 FROM book b
 JOIN publisher p ON b.publisher_id = p.p_id
 WHERE p.p_name = 'HarperCollins';
 
--- q6: List all books that are currently out of stock
+-- q7: List all books that are currently out of stock
 SELECT b.title, b.isbn
 FROM book b
 JOIN stock s ON b.isbn = s.book_isbn
 WHERE s.stock_quantity_available = 0;
 
--- q7: List all inventory stock
+-- q8: List all inventory stock
 SELECT s.stock_id, b.title, s.stock_quantity_available, s.restock_quantity, s.last_stock_date, sup.name AS supplier_name
 FROM stock s
 JOIN book b ON s.book_isbn = b.isbn
 JOIN supplier sup ON s.supplier_id = sup.supplier_id;
 
- -- q8: ⁠Check if a specific book has stock available or is out of stock.
+ -- q9: ⁠Check if a specific book has stock available or is out of stock.
 SELECT 
   b.title,
   s.stock_quantity_available,
@@ -266,7 +273,7 @@ FROM book b
 JOIN stock s ON b.isbn = s.book_isbn
 WHERE b.isbn = '9780747532743';
 
--- q9  ⁠List all suppliers and the books they provide.
+-- q10:  ⁠List all suppliers and the books they provide.
 SELECT 
   sup.name AS supplier_name,
   b.title AS book_title,
@@ -277,7 +284,7 @@ JOIN stock s ON sup.supplier_id = s.supplier_id
 JOIN book b ON s.book_isbn = b.isbn
 ORDER BY sup.name, b.title;
 
--- q10  ⁠Find the supplier(s) for a specific book.
+-- q11  ⁠Find the supplier(s) for a specific book.
 SELECT 
   b.title,
   sup.name AS supplier_name,
@@ -288,7 +295,7 @@ JOIN supplier sup ON s.supplier_id = sup.supplier_id
 JOIN book b ON s.book_isbn = b.isbn
 WHERE b.isbn = '9780747532743';
 
--- q11 Retrieve all stock entries provided by a specific supplier
+-- q12 Retrieve all stock entries provided by a specific supplier
 SELECT 
   s.stock_id,
   b.title AS book_title,
@@ -300,7 +307,7 @@ JOIN book b ON s.book_isbn = b.isbn
 JOIN supplier sup ON s.supplier_id = sup.supplier_id
 WHERE sup.name = 'BookSupplier1';
 
--- q12 Find the most recent restock date for a given book.
+-- q13 Find the most recent restock date for a given book.
 SELECT 
   b.title,
   MAX(s.last_stock_date) AS most_recent_restock
@@ -309,7 +316,7 @@ JOIN book b ON s.book_isbn = b.isbn
 WHERE b.isbn = '9781405937220'
 GROUP BY b.title;
 
--- q13 List all books supplied by a specific supplier along with their restock quantities
+-- q14 List all books supplied by a specific supplier along with their restock quantities
 SELECT 
   b.title AS book_title,
   s.restock_quantity,
