@@ -7,7 +7,8 @@ USE InkAndQuill;
 CREATE TABLE genre (
     g_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     g_name VARCHAR(30) NOT NULL,
-    g_desc VARCHAR(60)
+    g_desc VARCHAR(60),
+    INDEX idx_genre_name (g_name)
 );
 
 -- Create publisher table
@@ -15,7 +16,8 @@ CREATE TABLE publisher (
     p_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     p_name VARCHAR(100) NOT NULL,
     p_contactinfo VARCHAR(100),
-    p_address VARCHAR(200)
+    p_address VARCHAR(200),
+    INDEX idx_publisher_name (p_name)
 );
 
 -- Create author table
@@ -23,7 +25,8 @@ CREATE TABLE author (
     author_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     biography TEXT,
-    nationality VARCHAR(50)
+    nationality VARCHAR(50),
+    INDEX idx_author_name (name)
 );
 
 -- Create book table
@@ -33,7 +36,9 @@ CREATE TABLE book (
     price DECIMAL(10, 2) NOT NULL,
     publisher_id INT NOT NULL,
     publication_year INT NOT NULL,
-    CONSTRAINT fk_book_publisher FOREIGN KEY (publisher_id) REFERENCES publisher(p_id)
+    CONSTRAINT fk_book_publisher FOREIGN KEY (publisher_id) REFERENCES publisher(p_id),
+    INDEX idx_book_title (title),
+    INDEX idx_book_pub_year (publication_year)
 );
 
 -- Junction table for books↔authors
@@ -42,7 +47,9 @@ CREATE TABLE book_author (
     author_id INT NOT NULL,
     PRIMARY KEY (book_isbn, author_id),
     CONSTRAINT fk_ba_book FOREIGN KEY (book_isbn) REFERENCES book(isbn),
-    CONSTRAINT fk_ba_author FOREIGN KEY (author_id) REFERENCES author(author_id)
+    CONSTRAINT fk_ba_author FOREIGN KEY (author_id) REFERENCES author(author_id),
+    INDEX idx_ba_book_isbn (book_isbn),
+    INDEX idx_ba_author_id (author_id)
 );
 
 -- Junction table for books↔genres
@@ -51,7 +58,9 @@ CREATE TABLE book_genre (
     genre_id INT NOT NULL,
     PRIMARY KEY (book_isbn, genre_id),
     CONSTRAINT fk_bg_book FOREIGN KEY (book_isbn) REFERENCES book(isbn),
-    CONSTRAINT fk_bg_genre FOREIGN KEY (genre_id) REFERENCES genre(g_id)
+    CONSTRAINT fk_bg_genre FOREIGN KEY (genre_id) REFERENCES genre(g_id),
+    INDEX idx_bg_book_isbn (book_isbn),
+    INDEX idx_bg_genre_id (genre_id)
 );
 
 -- Create supplier table
@@ -60,7 +69,8 @@ CREATE TABLE supplier (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
     phone_number VARCHAR(20),
-    address VARCHAR(200)
+    address VARCHAR(200),
+    INDEX idx_supplier_name (name)
 );
 
 -- Create stock table
@@ -72,7 +82,10 @@ CREATE TABLE stock (
     book_isbn CHAR(13) NOT NULL,
     supplier_id INT NOT NULL,
     CONSTRAINT fk_stock_book FOREIGN KEY (book_isbn) REFERENCES book(isbn),
-    CONSTRAINT fk_stock_supplier FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id)
+    CONSTRAINT fk_stock_supplier FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id),
+    INDEX idx_stock_book_isbn (book_isbn),
+    INDEX idx_stock_supplier_id (supplier_id),
+    INDEX idx_stock_last_stock_date (last_stock_date)
 );
 
 -- Create customer table
@@ -81,7 +94,8 @@ CREATE TABLE customer (
     name VARCHAR(50) NOT NULL,
     email VARCHAR(50),
     phone_number VARCHAR(20),
-    address VARCHAR(200)
+    address VARCHAR(200),
+    INDEX idx_customer_name (name)
 );
 
 -- Create orders table
@@ -91,7 +105,10 @@ CREATE TABLE orders (
     order_date DATE,
     total_amount DECIMAL(10, 2),
     status VARCHAR(20),
-    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    INDEX idx_orders_customer_id (customer_id),
+    INDEX idx_orders_order_date (order_date),
+    INDEX idx_orders_status (status)
 );
 
 -- Create order_item table
@@ -102,7 +119,9 @@ CREATE TABLE order_item (
     book_quantity INT,
     price DECIMAL(10, 2),
     CONSTRAINT fk_item_order FOREIGN KEY (order_id) REFERENCES orders(order_id),
-    CONSTRAINT fk_item_book FOREIGN KEY (book_isbn) REFERENCES book(isbn)
+    CONSTRAINT fk_item_book FOREIGN KEY (book_isbn) REFERENCES book(isbn),
+    INDEX idx_order_item_order_id (order_id),
+    INDEX idx_order_item_book_isbn (book_isbn)
 );
 
 -- Create payment table
@@ -112,27 +131,27 @@ CREATE TABLE payment (
     payment_date DATE NOT NULL,
     amount_paid DECIMAL(10, 2) NOT NULL,
     payment_method VARCHAR(50) NOT NULL,
-    CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES orders(order_id)
+    CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES orders(order_id),
+    INDEX idx_payment_order_id (order_id),
+    INDEX idx_payment_payment_date (payment_date)
 );
 
--- Insert genres
+-- Insert sample data
+
 INSERT INTO genre (g_name, g_desc) VALUES
     ('Fantasy', 'Fantasy with magic'),
     ('Mystery', 'Detectives solving crimes'),
     ('Science Fiction', 'Futuristic, speculative science');
 
--- Insert publishers
 INSERT INTO publisher (p_name, p_contactinfo, p_address) VALUES
     ('Penguin Random House', 'contact@penguin.com', '1745 Broadway, NY'),
     ('HarperCollins', 'contact@harpercollins.com', '195 Broadway, NY');
 
--- Insert authors
 INSERT INTO author (name, biography, nationality) VALUES
     ('Toshikazu Kawaguchi', 'Japanese author of Before the Coffee Gets Cold.', 'Japanese'),
     ('Karen M. McManus', 'Author of Good Girl’s Guide to Murder series.', 'American'),
     ('J.K. Rowling', 'Author of the Harry Potter series.', 'British');
 
--- Insert books
 INSERT INTO book (isbn, title, price, publisher_id, publication_year) VALUES
     ('9781405937220', 'Before the Coffee Gets Cold', 15.99, 1, 2019),
     ('9781405937221', 'Before the Coffee Gets Cold (eBook)', 9.99, 1, 2019),
@@ -142,7 +161,6 @@ INSERT INTO book (isbn, title, price, publisher_id, publication_year) VALUES
     ('9780747532743', 'Harry Potter and the Philosopher''s Stone', 19.99, 1, 1997),
     ('9780747532744', 'Harry Potter and the Philosopher''s Stone (eBook)', 11.99, 1, 1997);
 
--- Map books to authors
 INSERT INTO book_author (book_isbn, author_id) VALUES
     ('9781405937220', 1),
     ('9781405937221', 1),
@@ -152,7 +170,6 @@ INSERT INTO book_author (book_isbn, author_id) VALUES
     ('9780747532743', 3),
     ('9780747532744', 3);
 
--- Map books to genres
 INSERT INTO book_genre (book_isbn, genre_id) VALUES
     ('9781405937220', 1),
     ('9781405937221', 1),
@@ -162,12 +179,10 @@ INSERT INTO book_genre (book_isbn, genre_id) VALUES
     ('9780747532743', 1),
     ('9780747532744', 1);
 
--- Insert suppliers
 INSERT INTO supplier (name, email, phone_number, address) VALUES
     ('BookSupplier1', 'contact@booksupplier1.com', '123-456-7890', '101 Supplier St, NY'),
     ('BookSupplier2', 'contact@booksupplier2.com', '987-654-3210', '202 Supplier Ave, LA');
 
--- insert stock records 
 INSERT INTO stock (stock_quantity_available, restock_quantity, last_stock_date, book_isbn, supplier_id) VALUES
     (100, 50, '2025-04-15', '9781405937220', 1),
     (80,  40, '2025-04-16', '9781405937221', 1),
@@ -177,19 +192,16 @@ INSERT INTO stock (stock_quantity_available, restock_quantity, last_stock_date, 
     (120, 60, '2025-04-20', '9780747532743', 1),
     (95,  50, '2025-04-21', '9780747532744', 2);
 
--- Insert customers
 INSERT INTO customer (name, email, phone_number, address) VALUES
     ('John Doe', 'johndoe@example.com', '555-1234', '123 Elm St, NY'),
     ('Jane Smith', 'janesmith@example.com', '555-5678', '456 Oak St, LA');
 
--- Insert orders
 INSERT INTO orders (customer_id, order_date, total_amount, status) VALUES
     (1, '2025-04-10', 25.98, 'Shipped'),
     (1, '2025-04-15', 39.97, 'Delivered'),
     (2, '2025-04-12', 31.98, 'Pending'),
     (1, '2025-05-20', 14.99, 'Processing');
 
--- Insert order items
 INSERT INTO order_item (order_id, book_isbn, book_quantity, price) VALUES
     (1, '9781405937220', 1, 15.99),
     (1, '9781405937221', 1, 9.99),
@@ -199,12 +211,53 @@ INSERT INTO order_item (order_id, book_isbn, book_quantity, price) VALUES
     (3, '9780747532744', 1, 11.99),
     (4, '9781405937251', 1, 14.99);
 
--- Insert payments
 INSERT INTO payment (order_id, payment_date, amount_paid, payment_method) VALUES
     (1, '2025-04-10', 25.98, 'Credit Card'),
     (2, '2025-04-15', 39.97, 'PayPal'),
     (3, '2025-04-12', 31.98, 'Credit Card'),
     (4, '2025-05-20', 14.99, 'Credit Card');
+
+-- views 
+
+-- View: Books by Genre
+CREATE VIEW BooksByGenre AS
+SELECT b.title AS book_title, g.g_name AS genre_name
+FROM book b
+JOIN book_genre bg ON b.isbn = bg.book_isbn
+JOIN genre g ON bg.genre_id = g.g_id;
+
+-- View: Author and Their Books
+CREATE VIEW AuthorBookView AS
+SELECT a.name AS author_name, b.title AS book_title
+FROM author a
+JOIN book_author ba ON a.author_id = ba.author_id
+JOIN book b ON ba.book_isbn = b.isbn;
+
+-- View: Customer Order History with Book Details
+CREATE VIEW CustomerOrderHistoryView AS
+SELECT
+    c.name AS customer_name,
+    o.order_id,
+    o.order_date,
+    oi.book_isbn,
+    b.title AS book_title,
+    oi.book_quantity,
+    oi.price
+FROM customer c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_item oi ON o.order_id = oi.order_id
+JOIN book b ON oi.book_isbn = b.isbn;
+
+-- View: Book Sales Summary
+CREATE VIEW BookSalesSummaryView AS
+SELECT
+    b.isbn,
+    b.title,
+    SUM(oi.book_quantity) AS total_quantity_sold,
+    SUM(oi.book_quantity * oi.price) AS total_revenue
+FROM book b
+JOIN order_item oi ON b.isbn = oi.book_isbn
+GROUP BY b.isbn, b.title;
 
 --  Queries
 
@@ -236,12 +289,11 @@ WHERE b.title = 'One of Us Is Lying'
 GROUP BY b.title
 ORDER BY total_revenue DESC;
  
- -- q5: Books with Low Stock (below 50)
+-- q5: Books with Low Stock (below 50)
 SELECT b.title, s.stock_quantity_available
 FROM stock s
 JOIN book b ON s.book_isbn = b.isbn
 WHERE s.stock_quantity_available < 50;
-
 
 -- q6: Find all books published by a certain publisher
 SELECT b.title, b.isbn, b.publication_year, p.p_name
@@ -261,7 +313,7 @@ FROM stock s
 JOIN book b ON s.book_isbn = b.isbn
 JOIN supplier sup ON s.supplier_id = sup.supplier_id;
 
- -- q9: ⁠Check if a specific book has stock available or is out of stock.
+-- q9: ⁠Check if a specific book has stock available or is out of stock.
 SELECT 
   b.title,
   s.stock_quantity_available,
@@ -307,7 +359,7 @@ JOIN book b ON s.book_isbn = b.isbn
 JOIN supplier sup ON s.supplier_id = sup.supplier_id
 WHERE sup.name = 'BookSupplier1';
 
--- q13 Find the most recent restock date for a given book.
+-- q13 Find the most recent restock date for a given book
 SELECT 
   b.title,
   MAX(s.last_stock_date) AS most_recent_restock
@@ -326,3 +378,17 @@ JOIN book b ON s.book_isbn = b.isbn
 JOIN supplier sup ON s.supplier_id = sup.supplier_id
 WHERE sup.name = 'BookSupplier2'
 ORDER BY s.last_stock_date DESC;
+
+-- views test 
+
+SELECT * FROM BooksByGenre;
+
+SELECT * FROM AuthorBookView;
+
+SELECT * 
+  FROM CustomerOrderHistoryView
+ WHERE customer_name = 'John Doe';
+
+SELECT * 
+  FROM BookSalesSummaryView
+ ORDER BY total_revenue DESC;
