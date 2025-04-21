@@ -41,7 +41,7 @@ CREATE TABLE book (
     INDEX idx_book_pub_year (publication_year)
 );
 
--- Junction table for books↔authors
+-- Junction table for books↔️authors
 CREATE TABLE book_author (
     book_isbn CHAR(13) NOT NULL,
     author_id INT NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE book_author (
     INDEX idx_ba_author_id (author_id)
 );
 
--- Junction table for books↔genres
+-- Junction table for books↔️genres
 CREATE TABLE book_genre (
     book_isbn CHAR(13) NOT NULL,
     genre_id INT NOT NULL,
@@ -137,7 +137,6 @@ CREATE TABLE payment (
 );
 
 -- Insert sample data
-
 INSERT INTO genre (g_name, g_desc) VALUES
     ('Fantasy', 'Fantasy with magic'),
     ('Mystery', 'Detectives solving crimes'),
@@ -186,11 +185,14 @@ INSERT INTO supplier (name, email, phone_number, address) VALUES
 INSERT INTO stock (stock_quantity_available, restock_quantity, last_stock_date, book_isbn, supplier_id) VALUES
     (100, 50, '2025-04-15', '9781405937220', 1),
     (80,  40, '2025-04-16', '9781405937221', 1),
+    (0, 50, '2025-04-22', '9781405937221', 2),
     (60,  30, '2025-04-17', '9781405937251', 2),
+    (25, 60, '2025-04-22', '9780747532744', 1),
     (90,  45, '2025-04-18', '9780399544917', 2),
     (70,  35, '2025-04-19', '9780399593931', 1),
     (120, 60, '2025-04-20', '9780747532743', 1),
-    (95,  50, '2025-04-21', '9780747532744', 2);
+    (95,  50, '2025-04-21', '9780747532744', 2),
+    (20, 40, '2025-04-22', '9780399593931', 2);
 
 INSERT INTO customer (name, email, phone_number, address) VALUES
     ('John Doe', 'johndoe@example.com', '555-1234', '123 Elm St, NY'),
